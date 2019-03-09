@@ -24,7 +24,7 @@ rize: &rize
         #                  re.automagic=FALSE
         #                  view_app=TRUE
         #                  app.name=<container-name>
-        Rscript -e "rize::shiny_dockerize(view_app=FALSE)"
+        Rscript -e "rize::shiny_dockerize(view_app=FALSE, app.name='$CONTAINER_NAME:$DOCKER_TAG')"
 
 dockerload: &dockerload
     name: Load Docker container Image
