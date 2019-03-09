@@ -11,12 +11,25 @@ defaults: &defaults
   docker:
     - image: vanessa/docker-rize:3.5.2
   working_directory: /tmp/src
+  environment:
+    - CONTAINER_NAME: vanessa/rize-container
+    - DOCKER_TAG: latest
+
+install: &install
+    name: Custom install of tweaked rize
+    command: |
+        Rscript -e "remotes::install_github('researchapps:rize@add/dockerize-arguments')"
 
 rize: &rize
     name: Run rize to create the Docker container
     command: |
         cd /tmp/src
-        Rscript -e "rize::shiny_dockerize()"
+
+        # Defaults include directory=getpwd()
+        #                  re.automagic=FALSE
+        #                  view_app=TRUE
+        #                  app.name=<container-name>
+        Rscript -e "rize::shiny_dockerize(view_app=FALSE)"
 
 dockerload: &dockerload
     name: Load Docker container Image
@@ -57,23 +70,6 @@ dockerdeploy: &dockerdeploy
             docker push ${CONTAINER_NAME}:latest
       fi
 
-dockerbuild: &dockerbuild
-    name: Build Docker Container
-    no_output_timeout: 60m
-    command: |
-        echo "0. Building Docker Container"
-        source ${BASH_ENV}
-        if [ ! -f "${DOCKERFILE_PATH}" ]; then
-            echo "Cannot find ${DOCKERFILE_PATH}, exiting build.";
-            exit 1;
-        else
-            echo "Dockerfile found at ${DOCKERFILE_PATH}";
-        fi
-        docker build -f "${DOCKERFILE_PATH}" -t "${CONTAINER_NAME}:${DOCKER_TAG}" .
-        docker ps
-        docker images
-
-
 ################################################################################
 # Jobs
 ################################################################################
@@ -91,7 +87,9 @@ jobs:
             - /tmp/cache/container.tar.gz
       - checkout
       - setup_remote_docker
+      - run: *install
       - run: *rize
+      - run: *dockersave
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -108,15 +106,14 @@ jobs:
          paths:
             - /tmp/cache/container.tar.gz
 
-#  deploy:
-#    <<: *defaults
-#    steps:
-#      - attach_workspace:
-#          at: /tmp
-#      - setup_remote_docker
-#      - run: *dockerenv
-#      - run: *dockerload
-#      - run: *dockerdeploy
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - setup_remote_docker
+      - run: *dockerload
+      - run: *dockerdeploy
 
 
 ################################################################################
