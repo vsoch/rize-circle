@@ -18,7 +18,7 @@ defaults: &defaults
 install: &install
     name: Custom install of tweaked rize
     command: |
-        Rscript -e "remotes::install_github('researchapps:rize@add/dockerize-arguments')"
+        Rscript -e "remotes::install_github('researchapps/rize@add/dockerize-arguments')"
 
 rize: &rize
     name: Run rize to create the Docker container
