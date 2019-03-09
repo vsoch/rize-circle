@@ -84,14 +84,11 @@ jobs:
   build:
     <<: *defaults
     steps:
-      - run: *install
       - restore_cache:
           keys:
             - docker-v1-{{ .Branch }}
           paths:
             - /tmp/cache/container.tar.gz
-      - restore_cache:
-          key: dependency-cache-repo2docker
       - checkout
       - setup_remote_docker
       - run: *rize
