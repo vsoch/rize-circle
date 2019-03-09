@@ -15,11 +15,6 @@ defaults: &defaults
     - CONTAINER_NAME: vanessa/rize-container
     - DOCKER_TAG: latest
 
-install: &install
-    name: Custom install of tweaked rize
-    command: |
-        Rscript -e "remotes::install_github('researchapps/rize@add/dockerize-arguments')"
-
 rize: &rize
     name: Run rize to create the Docker container
     command: |
@@ -60,7 +55,6 @@ dockerdeploy: &dockerdeploy
     name: Deploy to Docker Hub
     no_output_timeout: 40m
     command: |
-      source ${BASH_ENV}
       echo "Container name set to ${CONTAINER_NAME}:${DOCKER_TAG}"
       if [[ -n "$DOCKER_PASS" ]]; then
             docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -87,7 +81,6 @@ jobs:
             - /tmp/cache/container.tar.gz
       - checkout
       - setup_remote_docker
-      - run: *install
       - run: *rize
       - run: *dockersave
       - persist_to_workspace:
